@@ -15,10 +15,11 @@ interface TodoState {
 
 export const useToduStore = create<TodoState>((set) => ({
     todos: [],
-    addTodo: (text) =>
+    addTodo: (text) => {
         set((state) => ({
             todos: [...state.todos, { id: Date.now(), text, done: false }],
-        })),
+        }));
+    },
     toggleTodo: (id) =>
         set((state) => ({
             todos: state.todos.map((todo) =>
