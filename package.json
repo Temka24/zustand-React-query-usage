@@ -10,6 +10,8 @@
         "format": "prettier --write ."
     },
     "dependencies": {
+        "@tanstack/react-query": "^5.75.0",
+        "@tanstack/react-query-devtools": "^5.75.0",
         "axios": "^1.9.0",
         "immer": "^10.1.1",
         "next": "15.3.1",

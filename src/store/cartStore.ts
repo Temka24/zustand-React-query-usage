@@ -30,18 +30,14 @@ export const useCartStore = create<CartState>()(
                 cart: [],
                 hydrated: false,
                 addToCart: (product) => {
-                    console.log('Adding to cart:', product);
                     set((state) => {
                         const exist = state.cart.find((i) => i.id === product.id);
                         if (exist) {
                             exist.quantity++;
-                            console.log('Increased quantity of existing item:', exist);
                         } else {
                             const newItem = { ...product, quantity: 1 };
                             state.cart.push(newItem);
-                            console.log('Added new item to cart:', newItem);
                         }
-                        console.log('Updated cart:', state.cart);
                     });
                 },
                 removeFromCart: (id) =>
@@ -81,9 +77,6 @@ export const useCartStore = create<CartState>()(
             })),
             {
                 name: 'cart-storage',
-                onRehydrateStorage: () => (state) => {
-                    console.log('Cart store rehydrated:', state);
-                },
             },
         ),
     ),
