@@ -1,7 +1,6 @@
 'use client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import axios from 'axios';
+import { useTodos, useCreateTodo, useUpdateTodo, useDeleteTodo } from '@/app/hooks/useTodos';
 
 export interface ToDoType {
     id: string;
@@ -9,76 +8,14 @@ export interface ToDoType {
 }
 
 export default function TodosPage() {
-    const queryClient = useQueryClient();
+    const { data: todos, isLoading } = useTodos();
+    const createMutation = useCreateTodo();
+    const updateMutation = useUpdateTodo();
+    const deleteMutation = useDeleteTodo();
+
     const [title, setTitle] = useState('');
     const [editingId, setEditingId] = useState<string | null>(null);
     const [editingTitle, setEditingTitle] = useState('');
-
-    const { data: todos, isLoading } = useQuery<ToDoType[]>({
-        queryKey: ['todos'],
-        queryFn: async () => {
-            const res = await axios.get('/api/todos');
-            return res.data;
-        },
-    });
-
-    const createMutation = useMutation({
-        mutationFn: (title: string) => axios.post('/api/todos', { title }),
-        onMutate: async (title) => {
-            await queryClient.cancelQueries({ queryKey: ['todos'] });
-            const prev = queryClient.getQueryData<ToDoType[]>(['todos']);
-            queryClient.setQueryData<ToDoType[]>(['todos'], (old) => [
-                { id: `temp-${Date.now()}`, title },
-                ...(old ?? []),
-            ]);
-            return { prev };
-        },
-        onError: (_err, _data, ctx) => {
-            if (ctx?.prev) queryClient.setQueryData(['todos'], ctx.prev);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['todos'] });
-        },
-    });
-
-    const deleteMutation = useMutation({
-        mutationFn: (id: string) => axios.delete(`/api/todos`, { data: { id } }),
-        onMutate: async (id) => {
-            await queryClient.cancelQueries({ queryKey: ['todos'] });
-            const prev = queryClient.getQueryData<ToDoType[]>(['todos']);
-            queryClient.setQueryData<ToDoType[]>(['todos'], (old) =>
-                old?.filter((todo) => todo.id !== id),
-            );
-            return { prev };
-        },
-        onError: (_err, _id, ctx) => {
-            if (ctx?.prev) queryClient.setQueryData(['todos'], ctx.prev);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['todos'] });
-        },
-    });
-
-    const updateMutation = useMutation({
-        mutationFn: ({ id, title }: { id: string; title: string }) =>
-            axios.put(`/api/todos`, { title, id }),
-        onMutate: async (updated) => {
-            await queryClient.cancelQueries({ queryKey: ['todos'] });
-            const prev = queryClient.getQueryData<ToDoType[]>(['todos']);
-            queryClient.setQueryData<ToDoType[]>(['todos'], (old) =>
-                old?.map((todo) =>
-                    todo.id === updated.id ? { ...todo, title: updated.title } : todo,
-                ),
-            );
-            return { prev };
-        },
-        onError: (_err, _data, ctx) => {
-            if (ctx?.prev) queryClient.setQueryData(['todos'], ctx.prev);
-        },
-        onSettled: () => {
-            queryClient.invalidateQueries({ queryKey: ['todos'] });
-        },
-    });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
