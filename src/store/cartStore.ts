@@ -2,7 +2,6 @@
 import { create } from 'zustand';
 import { immer } from 'zustand/middleware/immer';
 import { persist, devtools } from 'zustand/middleware';
-import axios from 'axios';
 
 export type Product = {
     id: number;
@@ -28,7 +27,6 @@ export const useCartStore = create<CartState>()(
         persist(
             immer((set, get) => ({
                 cart: [],
-                hydrated: false,
                 addToCart: (product) => {
                     set((state) => {
                         const exist = state.cart.find((i) => i.id === product.id);
@@ -40,10 +38,10 @@ export const useCartStore = create<CartState>()(
                         }
                     });
                 },
-                removeFromCart: (id) =>
+                removeFromCart: (id) => {
                     set((state) => {
                         state.cart = state.cart.filter((item: CartItem) => item.id !== id);
-                    }),
+                    });},
                 increase: (id) => {
                     set((state) => {
                         const item = state.cart.find((i: CartItem) => i.id === id);
@@ -60,20 +58,9 @@ export const useCartStore = create<CartState>()(
                         }
                     });
                 },
-                hydrate: (items) => {
-                    if (!get().hydrated) {
-                        set({ cart: items, hydrated: true });
-                    }
-                },
-                syncToServer: async () => {
-                    const cart = get().cart;
-                    try {
-                        const res = await axios.post('/api/cart', { cart });
-                        alert(res.data.success);
-                    } catch (err) {
-                        console.error(err);
-                    }
-                },
+                clearCart: () => set((state) => { state.cart = [] }),
+                count: () => get().cart.reduce((n, i) => n + i.quantity, 0),
+                total: () => get().cart.reduce((n, i) => n + i.quantity * i.price, 0),
             })),
             {
                 name: 'cart-storage',
